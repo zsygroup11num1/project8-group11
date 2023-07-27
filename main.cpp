@@ -40,64 +40,64 @@ int main() {
 }
 
 
-// ¼ÙÉè'state'ÊÇÒ»¸ö°üº¬128Î»Ã÷ÎÄµÄÊı×é£¬'key'ÊÇÒ»¸ö°üº¬128Î»AESÃÜÔ¿µÄÊı×é¡£
+// å‡è®¾'state'æ˜¯ä¸€ä¸ªåŒ…å«128ä½æ˜æ–‡çš„æ•°ç»„ï¼Œ'key'æ˜¯ä¸€ä¸ªåŒ…å«128ä½AESå¯†é’¥çš„æ•°ç»„ã€‚
 void aes_encrypt(uint8_t* state, const uint8_t* key) {
-    // ¼ÓÔØÊı¾İºÍÃÜÔ¿µ½NEON¼Ä´æÆ÷¡£
+    // åŠ è½½æ•°æ®å’Œå¯†é’¥åˆ°NEONå¯„å­˜å™¨ã€‚
     uint8x16_t data_vec = vld1q_u8(state);
     uint8x16_t key_vec = vld1q_u8(key);
 
-    // Ö´ĞĞ³õÊ¼µÄAddRoundKey²½Öè¡£
+    // æ‰§è¡Œåˆå§‹çš„AddRoundKeyæ­¥éª¤ã€‚
     data_vec = veorq_u8(data_vec, key_vec);
 
-    // Ö´ĞĞ9ÂÖAES¡£
+    // æ‰§è¡Œ9è½®AESã€‚
     for (int round = 0; round < 9; ++round) {
-        // SubBytes²½ÖèÊ¹ÓÃSubstitution Box£¨S-Box£©¡£
+        // SubBytesæ­¥éª¤ä½¿ç”¨Substitution Boxï¼ˆS-Boxï¼‰ã€‚
         data_vec = aes_sub_bytes(data_vec);
 
-        // ShiftRows²½Öè¡£
+        // ShiftRowsæ­¥éª¤ã€‚
         data_vec = aes_shift_rows(data_vec);
 
-        // MixColumns²½Öè¡£
+        // MixColumnsæ­¥éª¤ã€‚
         data_vec = aes_mix_columns(data_vec);
 
-        // Ê¹ÓÃÕıÈ·µÄÂÖÃÜÔ¿Ö´ĞĞAddRoundKey²½Öè¡£
+        // ä½¿ç”¨æ­£ç¡®çš„è½®å¯†é’¥æ‰§è¡ŒAddRoundKeyæ­¥éª¤ã€‚
         key_vec = aes_key_expansion(key_vec, round + 1);
         data_vec = veorq_u8(data_vec, key_vec);
     }
 
-    // ×îºóÒ»ÂÖ£¨Ã»ÓĞMixColumns£©¡£
+    // æœ€åä¸€è½®ï¼ˆæ²¡æœ‰MixColumnsï¼‰ã€‚
     data_vec = aes_sub_bytes(data_vec);
     data_vec = aes_shift_rows(data_vec);
 
-    // Ê¹ÓÃ×îºóÒ»ÂÖÃÜÔ¿Ö´ĞĞAddRoundKey²½Öè¡£
+    // ä½¿ç”¨æœ€åä¸€è½®å¯†é’¥æ‰§è¡ŒAddRoundKeyæ­¥éª¤ã€‚
     key_vec = aes_key_expansion(key_vec, 10);
     data_vec = veorq_u8(data_vec, key_vec);
 
-    // ½«½á¹û´æ»ØÄÚ´æ£¨¼ÓÃÜÊı¾İ£©¡£
+    // å°†ç»“æœå­˜å›å†…å­˜ï¼ˆåŠ å¯†æ•°æ®ï¼‰ã€‚
     vst1q_u8(state, data_vec);
 }
 
-// ÏÂÃæÊÇNEONÖ¸ÁîµÄÕ¼Î»·ûº¯Êı£º
+// ä¸‹é¢æ˜¯NEONæŒ‡ä»¤çš„å ä½ç¬¦å‡½æ•°ï¼š
 uint8x16_t aes_sub_bytes(uint8x16_t data_vec) {
-    // Ê¹ÓÃNEONÖ¸ÁîÖ´ĞĞSubBytes²½Öè£¨S-BoxÌæ»»£©¡£
-    // Êµ¼ÊÊµÏÖÓ¦¸Ã¸ù¾İAESµÄSubBytesËã·¨À´ÊµÏÖ¡£
+    // ä½¿ç”¨NEONæŒ‡ä»¤æ‰§è¡ŒSubBytesæ­¥éª¤ï¼ˆS-Boxæ›¿æ¢ï¼‰ã€‚
+    // å®é™…å®ç°åº”è¯¥æ ¹æ®AESçš„SubBytesç®—æ³•æ¥å®ç°ã€‚
     return data_vec;
 }
 
 uint8x16_t aes_shift_rows(uint8x16_t data_vec) {
-    // Ê¹ÓÃNEONÖ¸ÁîÖ´ĞĞShiftRows²½Öè¡£
-    // Êµ¼ÊÊµÏÖÓ¦¸Ã¸ù¾İAESµÄShiftRowsËã·¨À´ÊµÏÖ¡£
+    // ä½¿ç”¨NEONæŒ‡ä»¤æ‰§è¡ŒShiftRowsæ­¥éª¤ã€‚
+    // å®é™…å®ç°åº”è¯¥æ ¹æ®AESçš„ShiftRowsç®—æ³•æ¥å®ç°ã€‚
     return data_vec;
 }
 
 uint8x16_t aes_mix_columns(uint8x16_t data_vec) {
-    // Ê¹ÓÃNEONÖ¸ÁîÖ´ĞĞMixColumns²½Öè¡£
-    // Êµ¼ÊÊµÏÖÓ¦¸Ã¸ù¾İAESµÄMixColumnsËã·¨À´ÊµÏÖ¡£
+    // ä½¿ç”¨NEONæŒ‡ä»¤æ‰§è¡ŒMixColumnsæ­¥éª¤ã€‚
+    // å®é™…å®ç°åº”è¯¥æ ¹æ®AESçš„MixColumnsç®—æ³•æ¥å®ç°ã€‚
     return data_vec;
 }
 
 uint8x16_t aes_key_expansion(uint8x16_t key_vec, int round_number) {
-    // Ê¹ÓÃNEONÖ¸ÁîÖ´ĞĞAESÃÜÔ¿À©Õ¹¡£
-    // Êµ¼ÊÊµÏÖÓ¦¸Ã¸ù¾İAESµÄÃÜÔ¿À©Õ¹Ëã·¨À´ÊµÏÖ¡£
+    // ä½¿ç”¨NEONæŒ‡ä»¤æ‰§è¡ŒAESå¯†é’¥æ‰©å±•ã€‚
+    // å®é™…å®ç°åº”è¯¥æ ¹æ®AESçš„å¯†é’¥æ‰©å±•ç®—æ³•æ¥å®ç°ã€‚
     return key_vec;
 }
